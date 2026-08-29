@@ -6,11 +6,26 @@ android {
     namespace 'com.alphalee.kodakdock'
     compileSdk 34
 
+    signingConfigs {
+        dock {
+            storeFile file('kodak-dock.keystore')
+            storePassword 'kodakdock'
+            keyAlias 'kodakdock'
+            keyPassword 'kodakdock'
+        }
+    }
+
     defaultConfig {
         applicationId 'com.alphalee.kodakdock'
         minSdk 26
         targetSdk 27
-        versionCode 2
-        versionName '1.1.0'
+        versionCode 3
+        versionName '1.1.1'
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.dock
+        }
     }
 }

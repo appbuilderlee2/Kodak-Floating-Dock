@@ -9,6 +9,7 @@ Minimal Android 8.1 overlay for the Kodak RWF-108H photo frame.
 - Drag the button to reposition it
 - Restarts after boot
 - No network, storage, phone, accessibility, or root permission
+- Uses a project-only signing key so future APK updates can install in place
 
 ## Install
 

@@ -1,10 +1,17 @@
 # Kodak Floating Dock
 
-A minimal floating launcher for the Kodak RWF-108H photo frame.
+Minimal Android 8.1 overlay for the Kodak RWF-108H photo frame.
 
 - Bottom-right semi-transparent dock
-- LocalSend button opens LocalSend
-- Kodak button returns to the original Kodak frame app
+- LocalSend button launches org.localsend.localsend_app
+- Kodak button launches com.cloudhearing.digital.kodakframe.android
 - Restarts after boot
-- Android 8.1 compatible
 - No network, storage, phone, accessibility, or root permission
+
+## Install
+
+Build the debug APK with the included GitHub Actions workflow, then run:
+
+    adb install -r app-debug.apk
+    adb shell appops set com.alphalee.kodakdock SYSTEM_ALERT_WINDOW allow
+    adb shell monkey -p com.alphalee.kodakdock -c android.intent.category.LAUNCHER 1

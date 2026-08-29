@@ -1,0 +1,16 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.alphalee.kodakdock'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.alphalee.kodakdock'
+        minSdk 26
+        targetSdk 27
+        versionCode 1
+        versionName '1.0.0'
+    }
+}

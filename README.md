@@ -2,7 +2,7 @@
 
 Minimal Android 8.1 overlay for the Kodak RWF-108H photo frame.
 
-- One bottom-right semi-transparent toggle button
+- One small bottom-left translucent toggle button
 - Tap once to switch from Kodak to LocalSend
 - Tap again to switch back to Kodak
 - The icon shows the app that will open next

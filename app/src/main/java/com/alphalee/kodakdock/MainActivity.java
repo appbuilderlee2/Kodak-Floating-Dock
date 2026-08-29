@@ -52,7 +52,7 @@ public class MainActivity extends Activity {
         title.setGravity(Gravity.CENTER);
 
         TextView body = new TextView(this);
-        body.setText("\n右下角會顯示一個切換按鈕。\n按一下在 LocalSend 與 Kodak 之間切換；拖動可移動位置。");
+        body.setText("\n左下角會顯示一個半透明切換按鈕。\n按一下在 LocalSend 與 Kodak 之間切換；拖動可移動位置。");
         body.setTextSize(18);
         body.setTextColor(Color.DKGRAY);
         body.setGravity(Gravity.CENTER);

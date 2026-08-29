@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.IBinder;
@@ -72,11 +71,12 @@ public class DockService extends Service {
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         LinearLayout bar = new LinearLayout(this);
         bar.setOrientation(LinearLayout.HORIZONTAL);
-        bar.setPadding(dp(6), dp(5), dp(6), dp(5));
+        bar.setPadding(dp(2), dp(2), dp(2), dp(2));
 
         GradientDrawable background = new GradientDrawable();
-        background.setColor(Color.argb(105, 10, 18, 16));
-        background.setCornerRadius(dp(28));
+        background.setColor(Color.argb(38, 5, 12, 11));
+        background.setStroke(dp(1), Color.argb(55, 255, 255, 255));
+        background.setCornerRadius(dp(22));
         bar.setBackground(background);
 
         toggleButton = appButton();
@@ -93,9 +93,15 @@ public class DockService extends Service {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                         | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
                 PixelFormat.TRANSLUCENT);
-        params.gravity = Gravity.BOTTOM | Gravity.RIGHT;
-        params.x = prefs.getInt("x", dp(12));
-        params.y = prefs.getInt("y", dp(12));
+        params.gravity = Gravity.BOTTOM | Gravity.LEFT;
+        if (!prefs.getBoolean("left_default_applied_v2", false)) {
+            params.x = dp(10);
+            params.y = dp(10);
+            prefs.edit().putBoolean("left_default_applied_v2", true).apply();
+        } else {
+            params.x = prefs.getInt("x", dp(10));
+            params.y = prefs.getInt("y", dp(10));
+        }
 
         toggleButton.setOnTouchListener(this::handleTouch);
         windowManager.addView(dock, params);
@@ -103,30 +109,32 @@ public class DockService extends Service {
 
     private ImageButton appButton() {
         ImageButton button = new ImageButton(this);
-        button.setBackgroundColor(Color.TRANSPARENT);
-        button.setPadding(dp(7), dp(7), dp(7), dp(7));
+        GradientDrawable buttonBackground = new GradientDrawable();
+        buttonBackground.setShape(GradientDrawable.OVAL);
+        buttonBackground.setColor(Color.argb(48, 0, 0, 0));
+        button.setBackground(buttonBackground);
+        button.setPadding(dp(8), dp(8), dp(8), dp(8));
+        button.setAlpha(0.58f);
+        button.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
         updateButton(button);
         return button;
     }
 
     private void updateButton(ImageButton button) {
-        try {
-            Drawable icon = getPackageManager().getApplicationIcon(nextPackage);
-            button.setImageDrawable(icon);
-        } catch (Exception ignored) {
-            button.setImageResource(android.R.drawable.sym_def_app_icon);
-        }
+        button.setImageResource(nextPackage.equals(LOCALSEND)
+                ? R.drawable.ic_localsend : R.drawable.ic_kodak);
         button.setContentDescription(nextPackage.equals(LOCALSEND)
                 ? "開啟 LocalSend" : "返回 Kodak 相框");
     }
 
     private LinearLayout.LayoutParams buttonParams() {
-        return new LinearLayout.LayoutParams(dp(54), dp(54));
+        return new LinearLayout.LayoutParams(dp(40), dp(40));
     }
 
     private boolean handleTouch(View view, MotionEvent event) {
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
+                view.setAlpha(0.92f);
                 downX = event.getRawX();
                 downY = event.getRawY();
                 startX = params.x;
@@ -137,11 +145,12 @@ public class DockService extends Service {
                 float dx = event.getRawX() - downX;
                 float dy = event.getRawY() - downY;
                 if (Math.abs(dx) > dp(5) || Math.abs(dy) > dp(5)) dragged = true;
-                params.x = Math.max(0, startX - (int) dx);
+                params.x = Math.max(0, startX + (int) dx);
                 params.y = Math.max(0, startY - (int) dy);
                 windowManager.updateViewLayout(dock, params);
                 return true;
             case MotionEvent.ACTION_UP:
+                view.setAlpha(0.58f);
                 if (dragged) {
                     getSharedPreferences("dock", MODE_PRIVATE).edit()
                             .putInt("x", params.x)
@@ -151,6 +160,9 @@ public class DockService extends Service {
                     nextPackage = nextPackage.equals(LOCALSEND) ? KODAK : LOCALSEND;
                     updateButton(toggleButton);
                 }
+                return true;
+            case MotionEvent.ACTION_CANCEL:
+                view.setAlpha(0.58f);
                 return true;
             default:
                 return false;

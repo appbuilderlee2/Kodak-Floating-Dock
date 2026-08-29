@@ -29,12 +29,14 @@ public class DockService extends Service {
 
     private WindowManager windowManager;
     private View dock;
+    private ImageButton toggleButton;
     private WindowManager.LayoutParams params;
     private float downX;
     private float downY;
     private int startX;
     private int startY;
     private boolean dragged;
+    private String nextPackage = LOCALSEND;
 
     @Override
     public void onCreate() {
@@ -77,8 +79,8 @@ public class DockService extends Service {
         background.setCornerRadius(dp(28));
         bar.setBackground(background);
 
-        bar.addView(appButton(LOCALSEND), buttonParams());
-        bar.addView(appButton(KODAK), buttonParams());
+        toggleButton = appButton();
+        bar.addView(toggleButton, buttonParams());
         dock = bar;
 
         SharedPreferences prefs = getSharedPreferences("dock", MODE_PRIVATE);
@@ -95,30 +97,34 @@ public class DockService extends Service {
         params.x = prefs.getInt("x", dp(12));
         params.y = prefs.getInt("y", dp(12));
 
-        bar.setOnTouchListener(this::handleDrag);
+        toggleButton.setOnTouchListener(this::handleTouch);
         windowManager.addView(dock, params);
     }
 
-    private ImageButton appButton(String packageName) {
+    private ImageButton appButton() {
         ImageButton button = new ImageButton(this);
         button.setBackgroundColor(Color.TRANSPARENT);
         button.setPadding(dp(7), dp(7), dp(7), dp(7));
+        updateButton(button);
+        return button;
+    }
+
+    private void updateButton(ImageButton button) {
         try {
-            Drawable icon = getPackageManager().getApplicationIcon(packageName);
+            Drawable icon = getPackageManager().getApplicationIcon(nextPackage);
             button.setImageDrawable(icon);
         } catch (Exception ignored) {
             button.setImageResource(android.R.drawable.sym_def_app_icon);
         }
-        button.setContentDescription(packageName.equals(LOCALSEND) ? "LocalSend" : "Kodak");
-        button.setOnClickListener(v -> launch(packageName));
-        return button;
+        button.setContentDescription(nextPackage.equals(LOCALSEND)
+                ? "開啟 LocalSend" : "返回 Kodak 相框");
     }
 
     private LinearLayout.LayoutParams buttonParams() {
         return new LinearLayout.LayoutParams(dp(54), dp(54));
     }
 
-    private boolean handleDrag(View view, MotionEvent event) {
+    private boolean handleTouch(View view, MotionEvent event) {
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 downX = event.getRawX();
@@ -141,6 +147,9 @@ public class DockService extends Service {
                             .putInt("x", params.x)
                             .putInt("y", params.y)
                             .apply();
+                } else if (launch(nextPackage)) {
+                    nextPackage = nextPackage.equals(LOCALSEND) ? KODAK : LOCALSEND;
+                    updateButton(toggleButton);
                 }
                 return true;
             default:
@@ -148,14 +157,15 @@ public class DockService extends Service {
         }
     }
 
-    private void launch(String packageName) {
+    private boolean launch(String packageName) {
         Intent launch = getPackageManager().getLaunchIntentForPackage(packageName);
         if (launch == null) {
             Toast.makeText(this, "未能開啟程式", Toast.LENGTH_SHORT).show();
-            return;
+            return false;
         }
         launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(launch);
+        return true;
     }
 
     private void createChannel() {
@@ -179,7 +189,7 @@ public class DockService extends Service {
         return builder
                 .setSmallIcon(R.drawable.ic_dock)
                 .setContentTitle("Kodak Dock")
-                .setContentText("LocalSend／Kodak 快捷按鈕運行中")
+                .setContentText("LocalSend／Kodak 切換按鈕運行中")
                 .setContentIntent(pending)
                 .setOngoing(true)
                 .build();
